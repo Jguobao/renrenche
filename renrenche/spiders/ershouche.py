@@ -53,9 +53,11 @@ class ErshoucheSpider(scrapy.Spider):
         city_id, city_name,area = response.meta["info"]
         info = response.meta["info"]
         sold_out_tips = response.xpath("//div[@class='sold-out-tips']/text()").get()
-        title = "".join(response.xpath("//div[@class='title']/h1/text()").getall()).strip()
+        # title = "".join(response.xpath("//div[@class='title']/h1/text()").getall()).strip()
+        title = "".join(response.xpath('//p[@class="title-buy rrcttf6861a996e433db75a6b279b5f99f4b6e"]/text()').getall()).strip()
         if sold_out_tips == "已下架":
             print("*"*100,"已下架")
+            print(response.request.url)
             time.sleep(3)
             yield scrapy.Request(response.request.url, callback=self.parse_detail, meta={'info': info},dont_filter=True)
         else:
