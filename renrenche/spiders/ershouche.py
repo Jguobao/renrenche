@@ -2,14 +2,33 @@
 import scrapy
 import re
 import json
-
+from copy import deepcopy
 class ErshoucheSpider(scrapy.Spider):
     name = 'ershouche'
     allowed_domains = ['renrenche.com']
-    start_urls = ['https://www.renrenche.com/qd/ershouche/p1/']
+    # start_urls = ['https://www.renrenche.com/qd/ershouche/p1/']
+    start_urls = ['https://www.renrenche.com/']
 
     def parse(self, response):
-        print("=" * 100)
+        div_list = response.xpath("//div[@class='area-city-letter']/div")
+        for divs in div_list:
+            area = divs.xpath(".//span/text()").get()
+            a_list = divs.xpath(".//a")
+            for a in a_list:
+                city_url = a.xpath("./@href").get()
+                city_url = response.urljoin(city_url)+"ershouche/p1"
+                city_id = a.xpath("./@rrc-event-name").get()
+
+                city_name = a.xpath("./text()").get()
+                print("#"*100)
+                print(city_name)
+                print(city_url)
+                yield scrapy.Request(city_url,callback=self.parse_detail,meta={'info':(city_url,city_id,city_name)})
+
+    #城市页面
+    def parse_detail(self, response):
+        info = response.meta.get("info")
+        print("="*100)
         print(response.request.url)
         li_list = response.xpath("//ul[@class='row-fluid list-row js-car-list']/li")
 
@@ -23,15 +42,14 @@ class ErshoucheSpider(scrapy.Spider):
                 car_url=response.urljoin(tmp)
             # print(car_url,index+1)
 
-            yield scrapy.Request(car_url,callback=self.parse_car,meta={"info":(index,)})
+            yield scrapy.Request(car_url,callback=self.parse_car,meta={'info':info})
 
         next_url =  response.xpath("//a[@rrc-event-name='switchright']/@href").get()
         if next_url != "javascript:void(0);":
             next_url = response.urljoin(next_url)
-            yield scrapy.Request(next_url,callback=self.parse,)
-
+            yield scrapy.Request(next_url,callback=self.parse_detail,meta={'info':info})
     def parse_car(self,response):
-        index = response.meta["info"]
+        city_url, city_id, city_name = response.meta["info"]
 
         car_url = response.request.url
         title = "".join(response.xpath("//div[@class='title']/h1/text()").getall()).strip()
@@ -51,7 +69,7 @@ class ErshoucheSpider(scrapy.Spider):
         first_page_json_url = "https://www.renrenche.com/lurker/v1/detail/firstpage?plog_id={}&cid={}&city_name={}".format(logId,car_encrypt_id,city_name)
         #车主评论与检测说明
         lurker_json_url = "https://www.renrenche.com/lurker/v1/detail/anotherpage?plog_id={}".format(logId)
-        item = dict(title=title,car_url=car_url,price_json_url=price_json_url,first_page_json_url=first_page_json_url,img_json_url=img_json_url,anotherpage_json_url=anotherpage_json_url)
+        item = dict(title=title,car_url=car_url,city_id=city_id,city_name=city_name,price_json_url=price_json_url,first_page_json_url=first_page_json_url,img_json_url=img_json_url,anotherpage_json_url=anotherpage_json_url)
 
         yield scrapy.Request(price_json_url,callback=self.parse_price,meta={"item":item})
 

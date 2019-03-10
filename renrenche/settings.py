@@ -8,13 +8,19 @@
 #     https://doc.scrapy.org/en/latest/topics/settings.html
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
-
+from datetime import datetime
 BOT_NAME = 'renrenche'
 
 SPIDER_MODULES = ['renrenche.spiders']
 NEWSPIDER_MODULE = 'renrenche.spiders'
 
-LOG_LEVEL ='INFO'
+
+today = datetime.now()
+log_file_path = "log/{}-{}-{} {}:{}:{}.log".format(today.year, today.month, today.day,today.hour,today.minute,today.second)
+LOG_LEVEL= 'DEBUG'
+LOG_FILE =log_file_path
+
+
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'renrenche (+http://www.yourdomain.com)'
@@ -28,7 +34,7 @@ ROBOTSTXT_OBEY = False
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-# DOWNLOAD_DELAY = 0.5
+DOWNLOAD_DELAY = 0.05
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
