@@ -23,7 +23,7 @@ class ErshoucheSpider(scrapy.Spider):
                 print("#"*100)
                 print(city_name)
                 print(city_url)
-                yield scrapy.Request(city_url,callback=self.parse_detail,meta={'info':(city_url,city_id,city_name)})
+                yield scrapy.Request(city_url,callback=self.parse_detail,meta={'info':(city_url,city_id,city_name,area)})
 
     #城市页面
     def parse_detail(self, response):
@@ -49,7 +49,7 @@ class ErshoucheSpider(scrapy.Spider):
             next_url = response.urljoin(next_url)
             yield scrapy.Request(next_url,callback=self.parse_detail,meta={'info':info})
     def parse_car(self,response):
-        city_url, city_id, city_name = response.meta["info"]
+        city_url, city_id, city_name,area = response.meta["info"]
 
         car_url = response.request.url
         title = "".join(response.xpath("//div[@class='title']/h1/text()").getall()).strip()
@@ -69,7 +69,7 @@ class ErshoucheSpider(scrapy.Spider):
         first_page_json_url = "https://www.renrenche.com/lurker/v1/detail/firstpage?plog_id={}&cid={}&city_name={}".format(logId,car_encrypt_id,city_name)
         #车主评论与检测说明
         lurker_json_url = "https://www.renrenche.com/lurker/v1/detail/anotherpage?plog_id={}".format(logId)
-        item = dict(title=title,car_url=car_url,city_id=city_id,city_name=city_name,price_json_url=price_json_url,first_page_json_url=first_page_json_url,img_json_url=img_json_url,anotherpage_json_url=anotherpage_json_url)
+        item = dict(title=title,car_url=car_url,city_id=city_id,city_name=city_name,area=area,price_json_url=price_json_url,first_page_json_url=first_page_json_url,img_json_url=img_json_url,anotherpage_json_url=anotherpage_json_url)
 
         yield scrapy.Request(price_json_url,callback=self.parse_price,meta={"item":item})
 

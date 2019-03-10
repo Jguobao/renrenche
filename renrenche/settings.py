@@ -17,8 +17,12 @@ NEWSPIDER_MODULE = 'renrenche.spiders'
 
 today = datetime.now()
 log_file_path = "log/{}-{}-{} {}:{}:{}.log".format(today.year, today.month, today.day,today.hour,today.minute,today.second)
-LOG_LEVEL= 'DEBUG'
+LOG_LEVEL= 'INFO'
 LOG_FILE =log_file_path
+
+# mongo 数据库
+
+MONGO_COLLECTION = ""
 
 
 
@@ -29,7 +33,7 @@ LOG_FILE =log_file_path
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-#CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 32
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay

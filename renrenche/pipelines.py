@@ -5,16 +5,17 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 from pymongo import MongoClient
-
+from scrapy.conf import settings
 class RenrenchePipeline(object):
     def __init__(self):
         self.client = MongoClient()
-        self.collection = self.client["renrenche"]["esc2"]
+        self.collection = self.client["renrenche2"]["esc"]
 
     def process_item(self, item, spider):
         title = item["title"]
         car_url = item["car_url"]
         city_name = item["city_name"]
+        area = item["area"]
         basic_info = item['first_page_json']['data']['content']['basic_info']
         city_id = item['city_id']
         mileage = basic_info['mileage']
@@ -43,6 +44,7 @@ class RenrenchePipeline(object):
             'mileage_wan':mileage,
             'city_id':city_id,
             'city_name':city_name,
+            'area':area,
             'price_wan':price,
             'newcar_price': newcar_price,
             'licensed_date':licensed_date,
