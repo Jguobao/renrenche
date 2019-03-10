@@ -9,13 +9,14 @@ from scrapy.conf import settings
 class RenrenchePipeline(object):
     def __init__(self):
         self.client = MongoClient()
-        self.collection = self.client["renrenche2"]["esc"]
+        self.collection = self.client["renrenche5"]["esc"]
 
     def process_item(self, item, spider):
         title = item["title"]
         car_url = item["car_url"]
         city_name = item["city_name"]
         area = item["area"]
+        sold_out_tips=item['sold_out_tips']
         basic_info = item['first_page_json']['data']['content']['basic_info']
         city_id = item['city_id']
         mileage = basic_info['mileage']
@@ -45,6 +46,7 @@ class RenrenchePipeline(object):
             'city_id':city_id,
             'city_name':city_name,
             'area':area,
+            'sold_out_tips':sold_out_tips,
             'price_wan':price,
             'newcar_price': newcar_price,
             'licensed_date':licensed_date,
