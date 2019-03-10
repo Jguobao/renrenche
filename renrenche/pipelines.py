@@ -9,7 +9,9 @@ from scrapy.conf import settings
 class RenrenchePipeline(object):
     def __init__(self):
         self.client = MongoClient()
-        self.collection = self.client["renrenche5"]["esc"]
+        # renrenche5 未对重复数据处理
+        # renrenche6 在spider中对重复数据进行处理
+        self.collection = self.client["renrenche6"]["esc"]
 
     def process_item(self, item, spider):
         title = item["title"]

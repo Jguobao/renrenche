@@ -3,6 +3,7 @@ import scrapy
 import re
 import json
 from copy import deepcopy
+import time
 class ErshoucheSpider(scrapy.Spider):
     name = 'ershouche'
     allowed_domains = ['renrenche.com']
@@ -50,30 +51,37 @@ class ErshoucheSpider(scrapy.Spider):
             yield scrapy.Request(next_url,callback=self.parse_detail,meta={'info':info})
     def parse_car(self,response):
         city_id, city_name,area = response.meta["info"]
-
-        car_url = response.request.url
-        title = "".join(response.xpath("//div[@class='title']/h1/text()").getall()).strip()
-        # print(response.request.url,index)
-        script_tag = response.xpath("/html/head/script[not(@type)][last()]").get()
+        info = response.meta["info"]
         sold_out_tips = response.xpath("//div[@class='sold-out-tips']/text()").get()
-        logId = re.findall(r"logId: '(\w+)',?",script_tag)[0]
-        car_encrypt_id = re.findall(r"car_encrypt_id: '(\w+)',?",script_tag)[0]
-        city_name = re.findall(r"cityName: '(\w+)',?",script_tag)[0]
-        # 价格
-        price_json_url = "https://www.renrenche.com/lurker/v1/detail/pricemap?plog_id={}&cid={}".format(logId,
-                                                                                                        car_encrypt_id)
+        title = "".join(response.xpath("//div[@class='title']/h1/text()").getall()).strip()
+        if sold_out_tips == "已下架":
+            print("*"*100,"已下架")
+            time.sleep(3)
+            yield scrapy.Request(response.request.url, callback=self.parse_detail, meta={'info': info},dont_filter=True)
+        else:
+            # print( title)
+            car_url = response.request.url
+            # print(response.request.url,index)
+            script_tag = response.xpath("/html/head/script[not(@type)][last()]").get()
 
-        anotherpage_json_url = "https://www.renrenche.com/lurker/v1/detail/anotherpage?plog_id={}&cid={}".format(logId,car_encrypt_id)
-        # 图片json
-        img_json_url = "https://www.renrenche.com/lurker/v1/detail/imagebook?plog_id={}&cid={}".format(logId, car_encrypt_id)
-        # 主页
-        first_page_json_url = "https://www.renrenche.com/lurker/v1/detail/firstpage?plog_id={}&cid={}&city_name={}".format(logId,car_encrypt_id,city_name)
-        #车主评论与检测说明
-        lurker_json_url = "https://www.renrenche.com/lurker/v1/detail/anotherpage?plog_id={}".format(logId)
+            logId = re.findall(r"logId: '(\w+)',?",script_tag)[0]
+            car_encrypt_id = re.findall(r"car_encrypt_id: '(\w+)',?",script_tag)[0]
+            city_name = re.findall(r"cityName: '(\w+)',?",script_tag)[0]
+            # 价格
+            price_json_url = "https://www.renrenche.com/lurker/v1/detail/pricemap?plog_id={}&cid={}".format(logId,
+                                                                                                            car_encrypt_id)
 
-        item = dict(title=title,car_url=car_url,city_id=city_id,sold_out_tips=sold_out_tips,city_name=city_name,area=area,price_json_url=price_json_url,first_page_json_url=first_page_json_url,img_json_url=img_json_url,anotherpage_json_url=anotherpage_json_url)
+            anotherpage_json_url = "https://www.renrenche.com/lurker/v1/detail/anotherpage?plog_id={}&cid={}".format(logId,car_encrypt_id)
+            # 图片json
+            img_json_url = "https://www.renrenche.com/lurker/v1/detail/imagebook?plog_id={}&cid={}".format(logId, car_encrypt_id)
+            # 主页
+            first_page_json_url = "https://www.renrenche.com/lurker/v1/detail/firstpage?plog_id={}&cid={}&city_name={}".format(logId,car_encrypt_id,city_name)
+            #车主评论与检测说明
+            lurker_json_url = "https://www.renrenche.com/lurker/v1/detail/anotherpage?plog_id={}".format(logId)
 
-        yield scrapy.Request(price_json_url,callback=self.parse_price,meta=deepcopy({"item":item}))
+            item = dict(title=title,car_url=car_url,city_id=city_id,sold_out_tips=sold_out_tips,city_name=city_name,area=area,price_json_url=price_json_url,first_page_json_url=first_page_json_url,img_json_url=img_json_url,anotherpage_json_url=anotherpage_json_url)
+
+            yield scrapy.Request(price_json_url,callback=self.parse_price,meta=deepcopy({"item":item}))
 
     def parse_price(self,response):
         item = response.meta.get("item")
