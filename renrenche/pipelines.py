@@ -11,7 +11,9 @@ class RenrenchePipeline(object):
         self.client = MongoClient()
         # renrenche5 未对重复数据处理
         # renrenche6 在spider中对重复数据进行处理
-        self.collection = self.client["renrenche6"]["esc"]
+        # renrenche7 在spider中对重复数据进行处理 版本2 ，1版本出现了标题问题
+        # renrenche8 在spider中对重复数据进行处理 版本2 ，1版本出现了标题问题 对重复数据的下架产品进行修复
+        self.collection = self.client["renrenche8"]["esc"]
 
     def process_item(self, item, spider):
         title = item["title"]

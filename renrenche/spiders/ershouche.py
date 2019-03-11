@@ -43,7 +43,7 @@ class ErshoucheSpider(scrapy.Spider):
                 car_url=response.urljoin(tmp)
             # print(car_url,index+1)
 
-            yield scrapy.Request(car_url,callback=self.parse_car,meta={'info':info})
+            yield scrapy.Request(car_url,callback=self.parse_car,meta=deepcopy({'info':info,'num':0}))
 
         next_url =  response.xpath("//a[@rrc-event-name='switchright']/@href").get()
         if next_url != "javascript:void(0);":
@@ -51,24 +51,32 @@ class ErshoucheSpider(scrapy.Spider):
             yield scrapy.Request(next_url,callback=self.parse_detail,meta={'info':info})
     def parse_car(self,response):
         city_id, city_name,area = response.meta["info"]
+        num = response.meta["num"]
         info = response.meta["info"]
+        car_url = response.request.url
         sold_out_tips = response.xpath("//div[@class='sold-out-tips']/text()").get()
         # title = "".join(response.xpath("//div[@class='title']/h1/text()").getall()).strip()
         title = "".join(response.xpath('//p[@class="title-buy rrcttf6861a996e433db75a6b279b5f99f4b6e"]/text()').getall()).strip()
         if sold_out_tips == "已下架":
-            print("*"*100,"已下架")
-            print(response.request.url)
-            time.sleep(3)
-            yield scrapy.Request(response.request.url, callback=self.parse_detail, meta={'info': info},dont_filter=True)
+            if num<5:
+                print("*"*100,"已下架")
+                num += 1
+                print(num)
+                print(response.request.url)
+                time.sleep(5)
+                yield scrapy.Request(response.request.url, callback=self.parse_detail, meta={'info': info,'num':num},dont_filter=True)
+            elif num ==5:
+                with open("fail.txt","w+") as f:
+                    json.dump({"title":title,"car_url":car_url},f,ensure_ascii=False)
         else:
             # print( title)
-            car_url = response.request.url
+
             # print(response.request.url,index)
             script_tag = response.xpath("/html/head/script[not(@type)][last()]").get()
 
             logId = re.findall(r"logId: '(\w+)',?",script_tag)[0]
             car_encrypt_id = re.findall(r"car_encrypt_id: '(\w+)',?",script_tag)[0]
-            city_name = re.findall(r"cityName: '(\w+)',?",script_tag)[0]
+            # city_name = re.findall(r"cityName: '(\w+)',?",script_tag)[0]
             # 价格
             price_json_url = "https://www.renrenche.com/lurker/v1/detail/pricemap?plog_id={}&cid={}".format(logId,
                                                                                                             car_encrypt_id)
